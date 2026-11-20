@@ -7,7 +7,7 @@
 
 pkgbase=linux-t2
 pkgver=7.2.15.arch1
-pkgrel=1
+pkgrel=2
 # Above every unepoched build, so T2 Macs that took a 7.3 kernel from
 # elsewhere move to this one on their next update.
 epoch=1
@@ -48,10 +48,12 @@ _srctag=v${pkgver%.*}-${pkgver##*.}
 # t2linux/linux-t2-patches at its last 7.2 commit, the set Omarchy 4.5.0
 # shipped with linux-t2 7.2.11. Later commits target 7.3.
 _t2commit=e16720782ee30fac38486b6c58d32443899c136a
+_kait2en_commit=f457579e15bb028ad2eec8c6ca0f853118986ecf
 source=(
   https://cdn.kernel.org/pub/linux/kernel/v${pkgver%%.*}.x/${_srcname}.tar.{xz,sign}
   $url/releases/download/$_srctag/linux-$_srctag.patch.zst{,.sig}
   t2patches::git+https://github.com/t2linux/linux-t2-patches.git#commit=$_t2commit
+  "KaiT2en-Fedora-${_kait2en_commit}.tar.gz::https://codeload.github.com/kaiT2en/KaiT2en-Fedora/tar.gz/${_kait2en_commit}"
 )
 source_x86_64=(config.x86_64)
 validpgpkeys=(
@@ -63,7 +65,8 @@ b2sums=('a1d1a6572667dfd75f7dde083a8d461db98e08bbc67cdd395e2d73a422ee487bd14392c
         'SKIP'
         '67c3a12310872c288ee5c6681fcd3f956103da1a7cf67f97a0bc2a1c2bfea6c4d7f916250eee79088d3e5c74e2e85a6145b3a605ed7527990c95e69454a9a455'
         'SKIP'
-        'SKIP')
+        'SKIP'
+        '94610ca2e592cc33b147dbda4fc5b2afc4168828ba613d2870bfbd1c5d542abc52889783831a7cdc52a40db8af3789fc5537e821fdf1794cd3680b795cdab724')
 b2sums_x86_64=('5f863771b626ec7d01692b8a2c4cf0bbb774fe334320723d0454f0f07410db58106cb56f2715d3add61ca1e2887e753806ea32d7b4b21d37bad32ae44f144ad5')
 
 # https://www.kernel.org/pub/linux/kernel/v7.x/sha256sums.asc
@@ -71,7 +74,8 @@ sha256sums=('d0f6b1d7324c937ccaeb5c4ca7084bfcf71db2edb3e2d3a31f0ad83a681809ab'
             'SKIP'
             '58c4f43e0c1583a37774867efe8a8d7b1201d094feb304111da161791193a790'
             'SKIP'
-            'SKIP')
+            'SKIP'
+            'b87e11ea182685227da9026a79d037f6a2c88302b8f8c2c981a36111b93d6746')
 
 export KBUILD_BUILD_HOST=omarchy
 export KBUILD_BUILD_USER=$pkgbase
@@ -101,6 +105,17 @@ prepare() {
     [[ ${src##*/} == 6001-drm-amd-pm-Fix-boot-problems-in-5300.patch ]] && continue
     echo "Applying T2 patch ${src##*/}..."
     patch -Np1 --fuzz=0 < "$src"
+  done
+
+  # Backport the KaiT2en AWDL driver ABI to the 7.2 line. The t2linux
+  # patch set already carries the Broadcom D3 timeout fix.
+  local awdl_dir="$srcdir/KaiT2en-Fedora-${_kait2en_commit}/patches/runtime/wireless"
+  local number
+  for number in 0004 0006 0007 0008 0009 0010 0011; do
+    for src in "$awdl_dir"/"$number"-wifi-brcmfmac-*.patch; do
+      echo "Applying KaiT2en AWDL patch ${src##*/}..."
+      patch -Np1 --fuzz=0 < "$src"
+    done
   done
 
   echo "Setting config..."
