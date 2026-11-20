@@ -361,6 +361,7 @@
  {"dir":"superwhisper-bin","pkgbase":"superwhisper-bin","arches":["aarch64","x86_64"],"names":["superwhisper-bin"],"provides":["superwhisper"],"replaces":[]},
  {"dir":"symfony-cli","pkgbase":"symfony-cli","arches":["aarch64","x86_64"],"names":["symfony-cli"],"provides":["symfony-cli"],"replaces":[]},
  {"dir":"systemd-stub-omarchy","pkgbase":"systemd-stub-omarchy","arches":["aarch64"],"names":["systemd-stub-omarchy"],"provides":[],"replaces":[]},
+ {"dir":"t2drop","pkgbase":"t2drop","arches":["x86_64"],"names":["t2drop"],"provides":[],"replaces":[]},
  {"dir":"t2fanrd","pkgbase":"t2fanrd","arches":["x86_64"],"names":["t2fanrd"],"provides":[],"replaces":["t2fand"]},
  {"dir":"t3code-bin","pkgbase":"t3code-bin","arches":["aarch64","x86_64"],"names":["t3code-bin"],"provides":["t3code"],"replaces":[]},
  {"dir":"t3code-nightly-bin","pkgbase":"t3code-nightly-bin","arches":["aarch64","x86_64"],"names":["t3code-nightly-bin"],"provides":["t3code-nightly"],"replaces":[]},

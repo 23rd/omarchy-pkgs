@@ -1,0 +1,51 @@
+# Maintainer: 23rd
+pkgname=t2drop
+pkgver=0.1.0.rf457579e15bb
+pkgrel=1
+pkgdesc='KaiT2en AirDrop service and command line for Apple T2 Macs'
+arch=('x86_64')
+url='https://github.com/kaiT2en/KaiT2en-Fedora'
+license=('GPL-3.0-or-later')
+depends=('bluez' 'dbus' 'gcc-libs' 'glibc' 'iproute2' 'systemd')
+makedepends=('cargo')
+optdepends=('networkmanager: keep the AWDL interface unmanaged')
+options=('!lto' '!debug')
+_commit=f457579e15bb028ad2eec8c6ca0f853118986ecf
+source=("KaiT2en-Fedora-${_commit}.tar.gz::https://codeload.github.com/kaiT2en/KaiT2en-Fedora/tar.gz/${_commit}")
+sha256sums=('b87e11ea182685227da9026a79d037f6a2c88302b8f8c2c981a36111b93d6746')
+
+prepare() {
+  cd "KaiT2en-Fedora-${_commit}/apps/t2-drop"
+  export CARGO_HOME="${srcdir}/cargo-home"
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/^host: //p')"
+}
+
+_cargo_env() {
+  export CARGO_HOME="${srcdir}/cargo-home"
+  local sysroot
+  sysroot=$(rustc --print sysroot)
+  export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=${sysroot}=/usr/src/rust --remap-path-prefix=${srcdir}=/usr/src/debug/${pkgname}"
+}
+
+build() {
+  cd "KaiT2en-Fedora-${_commit}/apps/t2-drop"
+  _cargo_env
+  cargo build --frozen --release
+}
+
+check() {
+  cd "KaiT2en-Fedora-${_commit}/apps/t2-drop"
+  _cargo_env
+  cargo test --frozen
+}
+
+package() {
+  cd "KaiT2en-Fedora-${_commit}/apps/t2-drop"
+  install -Dm755 target/release/t2drop "${pkgdir}/usr/bin/t2drop"
+  install -Dm644 systemd/t2-drop.service "${pkgdir}/usr/lib/systemd/system/t2-drop.service"
+  sed -i 's|^ExecStart=/usr/local/bin/t2drop |ExecStart=/usr/bin/t2drop |' \
+    "${pkgdir}/usr/lib/systemd/system/t2-drop.service"
+  install -Dm644 dbus/org.t2drop.conf "${pkgdir}/usr/share/dbus-1/system.d/org.t2drop.conf"
+  install -Dm644 dbus/org.t2drop.service "${pkgdir}/usr/share/dbus-1/system-services/org.t2drop.service"
+  install -Dm644 networkmanager/90-t2-drop-awdl.conf "${pkgdir}/usr/lib/NetworkManager/conf.d/90-t2-drop-awdl.conf"
+}
